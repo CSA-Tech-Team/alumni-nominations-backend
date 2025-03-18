@@ -51,9 +51,10 @@ export class AuthService {
                 email: dto.email,
                 password: hashedPassword,
                 firstName: dto.firstName,
-                Otp: otp,
+                otp: otp,
                 isVerified: false,
-                role:dto.role
+                role: dto.role,
+
             },
         });
 
@@ -66,11 +67,11 @@ export class AuthService {
         if (!user) throw new HttpException("User not found", 404);
 
         if (user.isVerified) throw new HttpException("User already verified", 400);
-        if (user.Otp !== otp) throw new HttpException("Incorrect OTP", 401);
+        if (user.otp !== otp) throw new HttpException("Incorrect OTP", 401);
 
         await this.prisma.user.update({
             where: { email },
-            data: { isVerified: true, Otp: "" }
+            data: { isVerified: true, otp: "" }
         });
 
         return this.signToken({ userId: user.id, email: user.email });
@@ -84,7 +85,7 @@ export class AuthService {
         const otp = GenerateOTP();
         await this.prisma.user.update({
             where: { email },
-            data: { forgotPassword: true, Otp: otp }
+            data: { forgotPassword: true, otp: otp }
         });
 
         await this.SendMail(email, otp);
@@ -97,12 +98,12 @@ export class AuthService {
         const user = await this.prisma.user.findUnique({ where: { email } });
         if (!user) throw new HttpException("User not found", 404);
         if (!user.isVerified || !user.forgotPassword) throw new HttpException("Invalid request", 400);
-        if (user.Otp !== otp) throw new HttpException("Invalid OTP", 401);
+        if (user.otp !== otp) throw new HttpException("Invalid OTP", 401);
 
         const hashedPassword = await argon.hash(password);
         await this.prisma.user.update({
             where: { email },
-            data: { password: hashedPassword, forgotPassword: false, Otp: "" }
+            data: { password: hashedPassword, forgotPassword: false, otp: "" }
         });
 
         return { message: "Password changed successfully" };

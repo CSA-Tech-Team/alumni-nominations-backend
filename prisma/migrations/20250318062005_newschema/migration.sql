@@ -1,0 +1,116 @@
+/*
+  Warnings:
+
+  - You are about to drop the `users` table. If the table is not empty, all the data it contains will be lost.
+
+*/
+-- CreateEnum
+CREATE TYPE "NomineeType" AS ENUM ('MYSELF', 'OTHERS');
+
+-- CreateEnum
+CREATE TYPE "Course" AS ENUM ('AUTOMOBILE_ENGINEERING', 'BIOMEDICAL_ENGINEERING', 'CIVIL_ENGINEERING', 'COMPUTER_SCIENCE_ENGINEERING', 'COMPUTER_SCIENCE_ENGINEERING_AI_ML', 'ELECTRICAL_ELECTRONICS_ENGINEERING', 'ELECTRONICS_AND_COMMUNICATION_ENGINEERING', 'INSTRUMENTATION_AND_CONTROL_ENGINEERING', 'MECHANICAL_ENGINEERING', 'METALLURGICAL_ENGINEERING', 'PRODUCTION_ENGINEERING', 'ROBOTICS_AND_AUTOMATION_ENGINEERING', 'BIOTECHNOLOGY', 'FASHION_TECHNOLOGY', 'INFORMATION_TECHNOLOGY', 'TEXTILE_TECHNOLOGY', 'ELECTRICAL_ELECTRONICS_ENGINEERING_SANDWICH', 'MECHANICAL_ENGINEERING_SANDWICH', 'PRODUCTION_ENGINEERING_SANDWICH', 'APPLIED_SCIENCE', 'COMPUTER_SYSTEMS_AND_DESIGN', 'AUTOMOTIVE_ENGINEERING', 'BIOMETRICS_AND_CYBERSECURITY', 'COMPUTER_SCIENCE_ENGINEERING_PG', 'CONTROL_SYSTEMS', 'EMBEDDED_AND_REALTIME_SYSTEMS', 'ENGINEERING_DESIGN', 'INDUSTRIAL_ENGINEERING', 'INDUSTRIAL_METALLURGY', 'MANUFACTURING_ENGINEERING', 'POWER_ELECTRONICS_AND_DRIVES', 'STRUCTURAL_ENGINEERING', 'VLSI_DESIGN', 'BIOTECHNOLOGY_PG', 'NANO_SCIENCE_AND_TECHNOLOGY', 'TEXTILE_TECHNOLOGY_PG', 'PG_CERTIFICATE_WELDING_AND_QUALITY_ENGINEERING', 'CERTIFICATE_WELDING_AND_QUALITY_ENGINEERING_INTEGRATED', 'APPLIED_MATHEMATICS', 'CYBER_SECURITY_INTEGRATED', 'DATA_SCIENCE_INTEGRATED', 'SOFTWARE_SYSTEMS_INTEGRATED', 'THEORETICAL_COMPUTER_SCIENCE_INTEGRATED', 'FASHION_DESIGN_AND_MERCHANDISING_INTEGRATED', 'MASTER_OF_COMPUTER_APPLICATIONS', 'MBA', 'MBA_WASTE_MANAGEMENT_AND_SOCIAL_ENTREPRENEURSHIP', 'PHD');
+
+-- DropTable
+DROP TABLE "users";
+
+-- CreateTable
+CREATE TABLE "Profile" (
+    "profileId" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "course" "Course" NOT NULL,
+    "graduationYear" INTEGER NOT NULL,
+    "companyName" TEXT NOT NULL,
+    "designation" TEXT NOT NULL,
+    "linkedInProfile" TEXT NOT NULL,
+    "resumeUrl" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "Profile_pkey" PRIMARY KEY ("profileId")
+);
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "firstName" TEXT NOT NULL,
+    "lastName" TEXT,
+    "role" "Role" NOT NULL DEFAULT 'USER',
+    "isVerified" BOOLEAN NOT NULL DEFAULT false,
+    "otp" TEXT DEFAULT '',
+    "forgotPassword" BOOLEAN DEFAULT false,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Nomination" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "nomineeType" "NomineeType" NOT NULL,
+    "nomineeId" TEXT,
+
+    CONSTRAINT "Nomination_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Nominee" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "phone" TEXT,
+    "course" "Course" NOT NULL,
+    "graduationYear" INTEGER NOT NULL,
+    "relationshipWithNominator" TEXT NOT NULL,
+    "currentEmployment" TEXT NOT NULL,
+    "linkedInProfile" TEXT NOT NULL,
+
+    CONSTRAINT "Nominee_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Criteria" (
+    "id" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+
+    CONSTRAINT "Criteria_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Answer" (
+    "id" TEXT NOT NULL,
+    "nominationId" TEXT NOT NULL,
+    "criteriaId" TEXT NOT NULL,
+    "response" TEXT NOT NULL,
+
+    CONSTRAINT "Answer_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Profile_userId_key" ON "Profile"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Nominee_email_key" ON "Nominee"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Nominee_phone_key" ON "Nominee"("phone");
+
+-- AddForeignKey
+ALTER TABLE "Profile" ADD CONSTRAINT "Profile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Nomination" ADD CONSTRAINT "Nomination_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Nomination" ADD CONSTRAINT "Nomination_nomineeId_fkey" FOREIGN KEY ("nomineeId") REFERENCES "Nominee"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Answer" ADD CONSTRAINT "Answer_nominationId_fkey" FOREIGN KEY ("nominationId") REFERENCES "Nomination"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Answer" ADD CONSTRAINT "Answer_criteriaId_fkey" FOREIGN KEY ("criteriaId") REFERENCES "Criteria"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
