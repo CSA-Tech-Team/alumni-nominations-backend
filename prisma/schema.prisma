@@ -28,10 +28,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email             String   @unique
-  password          String
-  firstName         String
-  lastName          String?
+  email     String  @unique
+  password  String
+  firstName String
+  lastName  String?
+
   role              Role     @default(USER)
   isProfileComplete Boolean  @default(false)
   isVerified        Boolean  @default(false)
@@ -43,10 +44,11 @@ model User {
 }
 
 model Nomination {
-  id          String      @id @default(uuid())
-  userId      String
-  nomineeType NomineeType
-  nomineeId   String? // Required when nomineeType = OTHERS, null for MYSELF
+  id             String      @id @default(uuid())
+  userId         String
+  nomineeType    NomineeType
+  nomineeId      String?     // Required when nomineeType = OTHERS, null for MYSELF
+  nominatedYear  Int         // New field: year in which the nomination is made
 
   user    User     @relation(fields: [userId], references: [id])
   nominee Nominee? @relation(fields: [nomineeId], references: [id])
@@ -54,11 +56,11 @@ model Nomination {
 }
 
 model Nominee {
-  id                        String  @id @default(uuid())
+  id                        String   @id @default(uuid())
   name                      String
-  email                     String  @unique
-  phone                     String? @unique
-  rollNo                    String
+  email                     String   @unique
+  phone                     String?  @unique
+  rollNo                    String? @default("")
   course                    Course
   graduationYear            Int
   relationshipWithNominator String

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsEnum, IsOptional, IsArray, ValidateNested, IsString } from 'class-validator';
+import { IsNotEmpty, IsEnum, IsOptional, IsArray, ValidateNested, IsInt, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { NomineeType } from '@prisma/client';
 
@@ -16,7 +16,7 @@ class CreateNomineeDto {
 
     @IsNotEmpty()
     @IsString()
-    rollNo: string
+    rollNo: string;
 
     @IsNotEmpty()
     email: string;
@@ -44,9 +44,11 @@ export class CreateNominationDto {
     @IsNotEmpty()
     userId: string;
 
-    @IsString()
+    // New: the year in which the nomination is made.
     @IsNotEmpty()
-    rollNo: string
+    @IsInt()
+    @Min(1900)
+    nominatedYear: number;
 
     @IsEnum(NomineeType)
     nomineeType: NomineeType;
