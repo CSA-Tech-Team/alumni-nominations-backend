@@ -8,27 +8,27 @@ export class NominationService {
   constructor(private prisma: PrismaService) { }
 
   async createNomination(dto: CreateNominationDto) {
+    // Validate that each provided criteriaId exists.
     const criteria = await this.prisma.criteria.findMany({ select: { id: true } });
     const criteriaIdSet = new Set(criteria.map(c => c.id));
-
     if (dto.answers.length !== criteria.length) {
       throw new BadRequestException('You must answer all criteria questions');
     }
-
     for (const answer of dto.answers) {
       if (!criteriaIdSet.has(answer.criteriaId)) {
         throw new BadRequestException(`Invalid criteriaId: ${answer.criteriaId}`);
       }
     }
 
+    // Validate that the nominating user exists.
     const user = await this.prisma.user.findUnique({
       where: { id: dto.userId },
-      include: { profile: true },
     });
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    // For self-nomination, ensure the user hasn't already nominated themselves.
     if (dto.nomineeType === NomineeType.MYSELF) {
       const existingSelfNomination = await this.prisma.nomination.findFirst({
         where: { userId: dto.userId, nomineeType: NomineeType.MYSELF },
@@ -36,28 +36,21 @@ export class NominationService {
       if (existingSelfNomination) {
         throw new BadRequestException('You have already nominated yourself.');
       }
-      if (!user.profile || !user.profile.rollNo) {
-        throw new BadRequestException('Your profile must be complete with a roll number.');
-      }
     }
 
     let nomineeId: string | undefined;
-    let rollNo: string;
+    let nominatedEmail: string;
 
     if (dto.nomineeType === NomineeType.OTHERS) {
       if (!dto.nominee) {
         throw new BadRequestException('Nominee details are required for OTHERS nomination');
       }
-
-      const existingNominee = await this.prisma.nominee.findFirst({
-        where: {
-          OR: [
-            { email: dto.nominee.email },
-            { rollNo: dto.nominee.rollNo },
-          ],
-        },
+      // Check if a nominee exists by email.
+      const existingNominee = await this.prisma.nominee.findUnique({
+        where: { email: dto.nominee.email },
       });
       if (existingNominee) {
+        // Check if any nomination already exists with this nominee.
         const existingNomination = await this.prisma.nomination.findFirst({
           where: { nomineeId: existingNominee.id },
         });
@@ -65,21 +58,25 @@ export class NominationService {
           throw new BadRequestException('This nominee has already been nominated.');
         }
         nomineeId = existingNominee.id;
-        rollNo = existingNominee.rollNo;
+        nominatedEmail = existingNominee.email;
       } else {
+        // Create nominee record using the provided details.
         const newNominee = await this.prisma.nominee.create({
           data: {
             ...dto.nominee,
+            // Cast course to the Course enum.
             course: dto.nominee.course as Course,
           },
         });
         nomineeId = newNominee.id;
-        rollNo = newNominee.rollNo;
+        nominatedEmail = newNominee.email;
       }
     } else {
-      rollNo = user.profile!.rollNo;
+      // For self-nomination, use the user's email.
+      nominatedEmail = user.email;
     }
 
+    // Prepare nomination data, including nominatedYear.
     const nominationData: any = {
       userId: dto.userId,
       nomineeType: dto.nomineeType,
@@ -97,7 +94,7 @@ export class NominationService {
       data: nominationData,
       include: { answers: true },
     });
-    return { nomination, rollNo };
+    return { nomination, nominatedEmail };
   }
 
   async getNominationById(id: string) {
@@ -105,23 +102,23 @@ export class NominationService {
       where: { id },
       include: {
         answers: true,
-        user: { include: { profile: true } },
+        user: true,
         nominee: true,
       },
     });
     if (!nomination) {
       throw new NotFoundException('Nomination not found');
     }
-    let rollNo: string;
+    let nominatedEmail: string;
     if (nomination.nomineeType === NomineeType.MYSELF) {
-      rollNo = nomination.user.profile?.rollNo || "";
+      nominatedEmail = nomination.user.email;
     } else {
-      rollNo = nomination.nominee?.rollNo || "";
+      nominatedEmail = nomination.nominee?.email || "";
     }
-    if (!rollNo) {
-      throw new BadRequestException('Roll number not found');
+    if (!nominatedEmail) {
+      throw new BadRequestException('Email not found');
     }
-    return { ...nomination, rollNo };
+    return { ...nomination, nominatedEmail };
   }
 
   async getNominationsByYear(year: number) {
@@ -129,7 +126,7 @@ export class NominationService {
       where: { nominatedYear: year },
       include: {
         answers: true,
-        user: { include: { profile: true } },
+        user: true,
         nominee: true,
       },
     });

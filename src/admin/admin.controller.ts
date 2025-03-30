@@ -23,7 +23,7 @@ export class AdminController {
       throw new HttpException("User is not authorized to access this website", HttpStatus.UNAUTHORIZED)
     }
 
-    return this.adminService.getNominationCountByRollNo(usr)
+    return this.adminService.getNominationCountByEmail(usr)
   }
 
   @Get('nominations')
@@ -31,7 +31,7 @@ export class AdminController {
     if (usr.role !== "ADMIN") {
       throw new HttpException("User is not authorized to access this website", HttpStatus.UNAUTHORIZED)
     }
-    return this.adminService.getNominationCountsForAllRollNos()
+    return this.adminService.getNominationCountsForAllEmails()
   }
 
 }

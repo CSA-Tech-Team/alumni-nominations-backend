@@ -44,11 +44,11 @@ model User {
 }
 
 model Nomination {
-  id             String      @id @default(uuid())
-  userId         String
-  nomineeType    NomineeType
-  nomineeId      String?     // Required when nomineeType = OTHERS, null for MYSELF
-  nominatedYear  Int         // New field: year in which the nomination is made
+  id            String      @id @default(uuid())
+  userId        String
+  nomineeType   NomineeType
+  nomineeId     String?
+  nominatedYear Int
 
   user    User     @relation(fields: [userId], references: [id])
   nominee Nominee? @relation(fields: [nomineeId], references: [id])
@@ -56,16 +56,17 @@ model Nomination {
 }
 
 model Nominee {
-  id                        String   @id @default(uuid())
+  id                        String  @id @default(uuid())
   name                      String
-  email                     String   @unique
-  phone                     String?  @unique
-  rollNo                    String? @default("")
+  email                     String  @unique
+  phone                     String? @unique
+  rollNo                    String?
   course                    Course
   graduationYear            Int
   relationshipWithNominator String
   currentEmployment         String
   linkedInProfile           String
+  ProfileURL                String?
 
   nominations Nomination[]
 }
