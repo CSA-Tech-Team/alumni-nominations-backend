@@ -11,12 +11,7 @@ export class CreateProfileDto {
   course: Course;
   
   @IsString()
-  @IsNotEmpty()
   rollNo: string
-
-  @IsString()
-  @IsNotEmpty()
-  rollno: string
 
   @IsNotEmpty()
   @IsNumber()

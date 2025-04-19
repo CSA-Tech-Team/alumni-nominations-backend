@@ -12,9 +12,20 @@ export class ProfileService {
     });
 
     if (existingProfile) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          isProfileComplete: true
+        },
+      });
       throw new BadRequestException('Profile already exists for this user');
     }
-
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isProfileComplete: true
+      },
+    });
     return this.prisma.profile.create({
       data: { ...dto, userId },
     });

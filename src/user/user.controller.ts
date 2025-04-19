@@ -13,8 +13,8 @@ export class UserController {
   @Get('me')
   @HttpCode(200)
   UserInfo(@UserDecorator() user: User) {
-    const { id, email, firstName, lastName, role } = user
-    return { id, email, firstName, lastName, role };
+    const { id } = user
+    return this.userService.getUserDetails(id)
   }
 
   @Patch('edituser')
