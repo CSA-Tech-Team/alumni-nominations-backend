@@ -8,11 +8,12 @@ import { NominationModule } from './nomination/nomination.module';
 import { CriteriaModule } from './criteria/criteria.module';
 import { NomineeModule } from './nominee/nominee.module';
 import { AdminModule } from './admin/admin.module';
+import { FileModule } from './fileupload/fileupload.module';
 
 @Module({
   // config module for envs
   imports: [ConfigModule.forRoot({
     isGlobal: true
-  }), AuthModule, UserModule, PrismaModule, ProfileModule, NominationModule, CriteriaModule, NomineeModule, AdminModule]
+  }), AuthModule, UserModule, PrismaModule, ProfileModule, NominationModule, CriteriaModule, NomineeModule, AdminModule, FileModule]
 })
 export class AppModule { }

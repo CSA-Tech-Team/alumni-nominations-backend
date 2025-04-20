@@ -54,7 +54,7 @@ export class AuthService {
                 otp: otp,
                 isVerified: false,
                 role: dto.role,
-
+                isProfileComplete: true ? dto.role === "ADMIN" : false,
             },
         });
 

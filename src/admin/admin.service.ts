@@ -8,11 +8,15 @@ export class AdminService {
 
   async getUsersWithNominationDetails() {
     const users = await this.prisma.user.findMany({
+      where: {
+        role: 'USER',
+      },
       select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
+        role: true,
         profile: {
           select: {
             phone: true,
@@ -60,6 +64,7 @@ export class AdminService {
     return modifiedUsers;
   }
 
+
   async getNominationCountByEmail(usr: User) {
     const email = usr.email;
     const count = await this.prisma.nomination.count({
@@ -85,9 +90,11 @@ export class AdminService {
 
   async getNominationCountsForAllEmails(): Promise<{ email: string; nominationCount: number }[]> {
     const userEmails = await this.prisma.user.findMany({
+      where: { role: 'USER' },
       select: { email: true },
       distinct: ['email'],
     });
+
     const nomineeEmails = await this.prisma.nominee.findMany({
       select: { email: true },
       distinct: ['email'],
@@ -106,18 +113,28 @@ export class AdminService {
           OR: [
             {
               nomineeType: 'MYSELF',
-              user: { email: email },
+              user: {
+                email: email,
+                role: 'USER', 
+              },
             },
             {
               nomineeType: 'OTHERS',
-              nominee: { email: email },
+              nominee: {
+                email: email,
+              },
+              user: {
+                role: 'USER', 
+              },
             },
           ],
         },
       });
+
       nominationCounts.push({ email, nominationCount: count });
     }
 
     return nominationCounts;
   }
+
 }
