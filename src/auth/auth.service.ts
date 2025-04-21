@@ -136,8 +136,90 @@ export class AuthService {
         const mailOptions = {
             from: SENDER_EMAIL,
             to: email,
-            subject: "OTP Verification for Sample App",
-            html: `<p>This is the OTP for your email verification: <strong>${otp}</strong></p>`,
+            subject: "Your OTP for Alumni Nomination Verification",
+            html: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Email Verification - Alumni Nomination</title>
+    <style>
+      body {
+        background-color: #f2f4f8;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        padding: 40px;
+      }
+      .header {
+        text-align: center;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+      }
+      .header h1 {
+        font-size: 24px;
+        color: #1a237e;
+        margin: 0;
+      }
+      .content {
+        font-size: 16px;
+      }
+      .otp-box {
+        background-color: #e8f0fe;
+        padding: 20px;
+        margin: 30px 0;
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        color: #0d47a1;
+        border-radius: 6px;
+        letter-spacing: 2px;
+      }
+      .footer {
+        font-size: 14px;
+        color: #777;
+        text-align: center;
+        margin-top: 40px;
+        border-top: 1px solid #e0e0e0;
+        padding-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="header">
+        <h1>Alumni Nomination Portal</h1>
+      </div>
+      <div class="content">
+        <p>Dear Candidate,</p>
+
+        <p>Thank you for participating in the Alumni Nomination process. To ensure the security of your account, please verify your email address using the One-Time Password (OTP) provided below:</p>
+
+        <div class="otp-box">${otp}</div>
+
+        <p>This OTP is valid for the next <strong>10 minutes</strong>. If you did not initiate this request, please disregard this email.</p>
+
+        <p>We appreciate your commitment to recognizing outstanding alumni.</p>
+
+        <p>Best regards,<br>
+        <strong>Alumni Nomination Committee</strong></p>
+      </div>
+
+      <div class="footer">
+        &copy; ${new Date().getFullYear()} Alumni Nomination Committee. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>
+`,
         };
 
         try {
