@@ -1,37 +1,26 @@
-version: '3.9'
-
 services:
-  postgres:
-    image: postgres:latest
-    container_name: alumninomination
-    restart: always
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
     environment:
+      POSTGRES_DB: alumninominations
       POSTGRES_USER: alumni
       POSTGRES_PASSWORD: secpass
-      POSTGRES_DB: alumninomination
-    ports:
-      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
 
-  backend:
-    build: ./
-    container_name: nest_backend2
-    depends_on:
-      - postgres
+  app:
+    build: .
     ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgresql://alumni:secpass@postgres:5432/alumninomination
-    volumes:
-      - ./:/app
-      - /app/node_modules
-    env_file:
-      - .env
-    command: >
-      sh -c "until pg_isready -h postgres -p 5432; do sleep 2; done &&
-      npx prisma migrate deploy &&
-      yarn start"
+      - "5000:5000"
+    depends_on:
+      - db
+    command: sh -c "npx prisma migrate deploy && node dist/src/main.js"
+
+
+networks:
+  bridge: {}
 
 volumes:
-  postgres_data:
+  pgdata:

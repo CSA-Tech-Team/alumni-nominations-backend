@@ -1,29 +1,43 @@
-FROM ubuntu:22.04
+FROM node:20-alpine AS builder
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV NODE_ENV=development
 
-RUN apt-get update && apt-get install -y curl gnupg2 apt-transport-https
-
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
-
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    apt-get update && apt-get install -y yarn
-
-RUN apt-get update && apt-get install -y postgresql-client
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-COPY package*.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY package*.json ./
+COPY prisma/schema.prisma ./prisma/schema.prisma
+
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
-COPY .env .env
+RUN chown -R node:node /app
 
-RUN npx prisma generate
+USER node
+
+RUN npx prisma generate && npm run build
+
+RUN npm prune --omit=dev
+
+FROM node:20-alpine
+
+ENV NODE_ENV=production
+
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules/ ./node_modules/
+COPY --from=builder /app/dist/ ./dist/
+COPY --from=builder /app/prisma/ ./prisma/
+COPY --from=builder /app/.env ./
+
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "until pg_isready -h postgres -p 5432; do sleep 2; done && npx prisma migrate deploy && yarn start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
